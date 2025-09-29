@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: exchange
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+logging:
+  level:
+    org.vladpush.app.orchestrator: INFO

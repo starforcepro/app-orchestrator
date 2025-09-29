@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: app-orchestrator
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.projects.app.orchestrator: DEBUG
+
+aws:
+  region: ${AWS_REGION}
+  credentials:
+    accessKeyId: ${AWS_ACCESS_KEY_ID}
+    secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+  lambda:
+    roleArn: ${LAMBDA_ROLE_ARN:arn}
