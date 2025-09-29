@@ -1,0 +1,141 @@
+openapi: 3.0.3
+info:
+  title: App Orchestrator API
+  version: 1.0.0
+  description: |
+    API for managing simple Node.js applications: deploy, activate, deactivate, remove, and check status.
+servers:
+  - url: http://localhost:8080
+paths:
+  /apps/{name}/status:
+    get:
+      summary: Get application status
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Application found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppControllerResponse'
+        '404':
+          description: Application not found
+        '500':
+          description: Internal server error
+  /apps/deploy:
+    post:
+      summary: Deploy a Node.js application
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeployRequest'
+      responses:
+        '200':
+          description: Deployed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppControllerResponse'
+        '400':
+          description: Bad request or unknown error
+        '409':
+          description: Concurrent update conflict
+  /apps/{name}/activate:
+    post:
+      summary: Activate an application
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Activated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppControllerResponse'
+        '404':
+          description: Application not found
+        '500':
+          description: Internal server error
+  /apps/{name}/deactivate:
+    post:
+      summary: Deactivate an application
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deactivated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppControllerResponse'
+        '404':
+          description: Application not found
+        '500':
+          description: Internal server error
+  /apps/{name}/remove:
+    post:
+      summary: Remove an application
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppControllerResponse'
+        '404':
+          description: Application not found
+        '500':
+          description: Internal server error
+components:
+  schemas:
+    DeployRequest:
+      type: object
+      required:
+        - name
+        - archive
+      properties:
+        name:
+          type: string
+          description: Application name
+        archive:
+          type: string
+          description: Base64-encoded application archive
+    AppControllerResponse:
+      type: object
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/NodeAppStatus'
+    NodeAppStatus:
+      type: string
+      enum:
+        - DEPLOYED
+        - ACTIVE
+        - INACTIVE
+        - REMOVED
+        - ERROR
