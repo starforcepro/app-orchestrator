@@ -1,9 +1,11 @@
 package org.projects.app.orchestrator.model
 
 import java.time.LocalDateTime
+import java.util.UUID
 
 
 data class ApplicationInfo(
+    val id: UUID = UUID.randomUUID(),
     val name: String,
     val status: NodeAppStatus,
     val createdAt: LocalDateTime,

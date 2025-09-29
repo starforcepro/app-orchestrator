@@ -1,7 +1,6 @@
 package org.projects.app.orchestrator.service
 
 import com.ninjasquad.springmockk.SpykBean
-import io.mockk.every
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -12,8 +11,6 @@ import org.projects.app.orchestrator.model.AppServiceResponseStatus
 import org.projects.app.orchestrator.model.NodeAppStatus
 import org.projects.app.orchestrator.repository.AppRepository
 import org.springframework.beans.factory.annotation.Autowired
-import java.nio.file.Paths
-import kotlin.io.encoding.Base64
 
 class NodeAppServiceTest : TestBase() {
 
@@ -57,17 +54,7 @@ class NodeAppServiceTest : TestBase() {
         nodeAppService.deploy(name, archivedAppBase64)
         createdAppsNames += name
 
-        verify { nodeAppService.stop(any()) }
-    }
-
-    @Test
-    fun `deploy with empty archive returns INVALID_ARCHIVE`() {
-        val name = uniqueName()
-        val emptyArchive = ""
-
-        val response = nodeAppService.deploy(name, emptyArchive)
-
-        assertThat(response.status).isEqualTo(AppServiceResponseStatus.INVALID_ARCHIVE)
+        verify { nodeAppService.deactivate(any()) }
     }
 
     @Test
@@ -78,18 +65,18 @@ class NodeAppServiceTest : TestBase() {
         nodeAppService.deploy(name, archivedAppBase64)
         createdAppsNames += name
 
-        val nodeAppServiceResult = nodeAppService.start(name)
+        val nodeAppServiceResult = nodeAppService.activate(name)
 
         assertThat(nodeAppServiceResult.status).isEqualTo(AppServiceResponseStatus.SUCCESS)
         val appInfo = nodeAppServiceResult.applicationInfo!!
-        assertThat(appInfo.status).isEqualTo(NodeAppStatus.RUNNING)
+        assertThat(appInfo.status).isEqualTo(NodeAppStatus.ACTIVE)
     }
 
     @Test
     fun `start returns NOT_FOUND if app is not deployed`() {
         val name = uniqueName()
 
-        val nodeAppServiceResult = nodeAppService.start(name)
+        val nodeAppServiceResult = nodeAppService.activate(name)
 
         assertThat(nodeAppServiceResult.status).isEqualTo(AppServiceResponseStatus.NOT_FOUND)
     }
@@ -101,9 +88,9 @@ class NodeAppServiceTest : TestBase() {
 
         nodeAppService.deploy(name, archivedAppBase64)
         createdAppsNames += name
-        nodeAppService.start(name)
+        nodeAppService.activate(name)
 
-        val nodeAppServiceResult = nodeAppService.start(name)
+        val nodeAppServiceResult = nodeAppService.activate(name)
 
         assertThat(nodeAppServiceResult.status).isEqualTo(AppServiceResponseStatus.SUCCESS)
     }
@@ -114,12 +101,12 @@ class NodeAppServiceTest : TestBase() {
         val archivedAppBase64 = getArchivedAppBase64()
 
         nodeAppService.deploy(name, archivedAppBase64)
-        nodeAppService.start(name)
+        nodeAppService.activate(name)
 
-        val nodeAppServiceResponse = nodeAppService.stop(name)
+        val nodeAppServiceResponse = nodeAppService.deactivate(name)
 
         assertThat(nodeAppServiceResponse.status).isEqualTo(AppServiceResponseStatus.SUCCESS)
-        assertThat(nodeAppServiceResponse.applicationInfo!!.status).isEqualTo(NodeAppStatus.STOPPED)
+        assertThat(nodeAppServiceResponse.applicationInfo!!.status).isEqualTo(NodeAppStatus.INACTIVE)
         assertThat(appRepository.findByName(name)).isNull()
 
     }
@@ -128,7 +115,7 @@ class NodeAppServiceTest : TestBase() {
     fun `stop returns NOT_FOUND if app is not deployed`() {
         val name = uniqueName()
 
-        val nodeAppServiceResult = nodeAppService.stop(name)
+        val nodeAppServiceResult = nodeAppService.deactivate(name)
 
         assertThat(nodeAppServiceResult.status).isEqualTo(AppServiceResponseStatus.NOT_FOUND)
     }

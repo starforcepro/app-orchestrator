@@ -3,6 +3,8 @@ package org.projects.app.orchestrator.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import jakarta.servlet.http.HttpServletRequest
+import mu.KLogging
+import org.projects.app.orchestrator.handler.InvokeResult
 import org.projects.app.orchestrator.handler.LambdaFunctionHandler
 import org.projects.app.orchestrator.model.AppServiceResponseStatus
 import org.projects.app.orchestrator.model.NodeAppStatus
@@ -19,6 +21,7 @@ class ProxyController(
     private val lambdaFunctionHandler: LambdaFunctionHandler,
     private val objectMapper: ObjectMapper,
 ) {
+    companion object : KLogging()
 
     @RequestMapping("/**")
     fun proxyByHost(
@@ -28,17 +31,22 @@ class ProxyController(
         val appName = host.substringBefore(".")
 
         val appServiceResponse = nodeAppService.getByName(appName)
-        if (
-            appServiceResponse.status != AppServiceResponseStatus.SUCCESS ||
+        if (appServiceResponse.status != AppServiceResponseStatus.SUCCESS ||
             appServiceResponse.applicationInfo == null ||
-            appServiceResponse.applicationInfo.status != NodeAppStatus.RUNNING
+            appServiceResponse.applicationInfo.status != NodeAppStatus.ACTIVE
         ) return ResponseEntity.notFound().build()
 
         val payload = buildLambdaEventPayload(request)
         val invokeResult = lambdaFunctionHandler.invoke(appName, payload)
         if (invokeResult.error != null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
+            logger.error { "Error invoking lambda $appName function: ${invokeResult.error}" }
+            return ResponseEntity.badRequest().build()
         }
+
+        return buildHttpResponse(invokeResult)
+    }
+
+    private fun buildHttpResponse(invokeResult: InvokeResult): ResponseEntity<ByteArray> {
         val lambdaResponse = objectMapper.readValue<ApiGatewayProxyResponse>(invokeResult.result)
         val headers = HttpHeaders()
         lambdaResponse.headers?.forEach { (k, v) -> headers.add(k, v) }

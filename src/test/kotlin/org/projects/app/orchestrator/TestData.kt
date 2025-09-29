@@ -22,8 +22,7 @@ val expressJsFileContent = $$"""
             exports.handler = async (event) => {
               const path = (event && (event.rawPath || event.path)) || '/';
               const method = ((event && (event.requestContext && event.requestContext.http && event.requestContext.http.method)) || event.httpMethod || 'GET').toUpperCase();
-              
-              // Helpers
+
               const ok = (body) => ({ statusCode: 200, headers: { 'Content-Type': 'text/plain' }, body: String(body ?? '') });
               const badRequest = (body) => ({ statusCode: 400, headers: { 'Content-Type': 'text/plain' }, body: String(body ?? '') });
               const notFound = () => ({ statusCode: 404, headers: { 'Content-Type': 'text/plain' }, body: 'Not Found' });
@@ -74,7 +73,5 @@ fun ByteArray.toZipByteArray(): ByteArray {
     }
     return byteArrayOutputStream.toByteArray()
 }
-
-const val INDEX_JS_FILE_NAME = "index.js"
 
 fun uniqueName(): String = UUID.randomUUID().toString()

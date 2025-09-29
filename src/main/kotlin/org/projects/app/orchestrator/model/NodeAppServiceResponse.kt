@@ -7,10 +7,8 @@ class AppServiceResponse(
 
 enum class AppServiceResponseStatus {
     NOT_FOUND,
-    INVALID_ARCHIVE,
     ALREADY_EXISTS,
     CONCURRENT_UPDATE,
-    DOES_NOT_EXIST,
     SUCCESS,
     UNKNOWN_ERROR
 }

@@ -21,7 +21,7 @@ class ProxyControllerTest : TestBase() {
 
     @BeforeEach
     fun cleanup() {
-        createdAppsNames.forEach { name -> nodeAppService.stop(name) }
+        createdAppsNames.forEach { name -> nodeAppService.deactivate(name) }
         createdAppsNames.clear()
     }
 
@@ -103,7 +103,7 @@ class ProxyControllerTest : TestBase() {
 
     private fun deployAndRun(name: String) {
         deploy(name)
-        nodeAppService.start(name)
+        nodeAppService.activate(name)
     }
 
     private fun deploy(name: String) {

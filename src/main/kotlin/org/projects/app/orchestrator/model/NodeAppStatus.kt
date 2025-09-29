@@ -2,8 +2,8 @@ package org.projects.app.orchestrator.model
 
 enum class NodeAppStatus {
     DEPLOYED,
-    RUNNING,
-    STOPPED,
+    ACTIVE,
+    INACTIVE,
     REMOVED,
     ERROR
 }

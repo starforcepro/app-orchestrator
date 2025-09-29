@@ -24,6 +24,13 @@ class NodeAppService(
     }
 
     fun deploy(name: String, archive: String): AppServiceResponse {
+        if (lambdaFunctionHandler.get(name) == null) {
+            return create(name, archive)
+        }
+        return update(name, archive)
+    }
+
+    fun create(name: String, archive: String): AppServiceResponse {
         val lambda = AwsLambda(
             name = name,
             handler = "index.handler",
@@ -36,9 +43,6 @@ class NodeAppService(
         } catch (_: ResourceConflictException) {
             logger.debug { "Lambda $name already exists" }
             return AppServiceResponse(AppServiceResponseStatus.ALREADY_EXISTS)
-        } catch (e: RuntimeException) {
-            logger.warn { "Failed to create function $name: ${e.message}" }
-            return AppServiceResponse(AppServiceResponseStatus.UNKNOWN_ERROR)
         } catch (e: Exception) {
             logger.error(e) { "Failed to deploy lambda $name" }
             return AppServiceResponse(AppServiceResponseStatus.UNKNOWN_ERROR)
@@ -46,11 +50,11 @@ class NodeAppService(
         val now = LocalDateTime.now()
         val applicationInfo = ApplicationInfo(
             name = name,
-            status = NodeAppStatus.DEPLOYED,
+            status = NodeAppStatus.ACTIVE,
             createdAt = now,
             updatedAt = now
         )
-        appRepository.upsert(applicationInfo)
+        appRepository.create(applicationInfo)
         return applicationInfo.toAppServiceResponse()
     }
 
@@ -59,13 +63,10 @@ class NodeAppService(
             lambdaFunctionHandler.update(name, archive)
         } catch (_: ResourceNotFoundException) {
             logger.debug { "Lambda $name does not exist" }
-            return AppServiceResponse(AppServiceResponseStatus.DOES_NOT_EXIST)
+            return AppServiceResponse(AppServiceResponseStatus.NOT_FOUND)
         } catch (_: ResourceConflictException) {
             logger.debug { "another update is in progress $name " }
             return AppServiceResponse(AppServiceResponseStatus.CONCURRENT_UPDATE)
-        } catch (e: RuntimeException) {
-            logger.warn { "Failed to create function $name: ${e.message}" }
-            return AppServiceResponse(AppServiceResponseStatus.UNKNOWN_ERROR)
         } catch (e: Exception) {
             logger.error(e) { "Failed to update lambda $name" }
             return AppServiceResponse(AppServiceResponseStatus.UNKNOWN_ERROR)
@@ -74,52 +75,49 @@ class NodeAppService(
         val now = LocalDateTime.now()
         val applicationInfo = ApplicationInfo(
             name = name,
-            status = NodeAppStatus.DEPLOYED,
+            status = NodeAppStatus.ACTIVE,
             createdAt = now,
             updatedAt = now
         )
-        appRepository.upsert(applicationInfo)
+        appRepository.update(applicationInfo)
         return applicationInfo.toAppServiceResponse()
     }
 
-    fun start(name: String): AppServiceResponse {
+    fun activate(name: String): AppServiceResponse {
         val nodeApp = appRepository.findByName(name)
             ?: return AppServiceResponse(AppServiceResponseStatus.NOT_FOUND)
-        val startedApp = appRepository.upsert(
+        val activatedApp = appRepository.update(
             nodeApp.copy(
-                status = NodeAppStatus.RUNNING,
+                status = NodeAppStatus.ACTIVE,
                 updatedAt = LocalDateTime.now()
             )
         )
-        appRepository.upsert(startedApp)
-        return startedApp.toAppServiceResponse()
+        return activatedApp.toAppServiceResponse()
     }
 
-    fun stop(name: String): AppServiceResponse {
+    fun deactivate(name: String): AppServiceResponse {
         val nodeApp = appRepository.findByName(name)
             ?: return AppServiceResponse(AppServiceResponseStatus.NOT_FOUND)
 
-        val stoppedApp = appRepository.upsert(
+        val deactivatedApp = appRepository.update(
             nodeApp.copy(
-                status = NodeAppStatus.STOPPED,
+                status = NodeAppStatus.INACTIVE,
                 updatedAt = LocalDateTime.now()
             )
         )
-        appRepository.upsert(stoppedApp)
-        return stoppedApp.toAppServiceResponse()
+        return deactivatedApp.toAppServiceResponse()
     }
 
     fun remove(name: String): AppServiceResponse {
         val nodeApp = appRepository.findByName(name)
             ?: return AppServiceResponse(AppServiceResponseStatus.NOT_FOUND)
         lambdaFunctionHandler.remove(name)
-        val removedApp = appRepository.upsert(
+        val removedApp = appRepository.update(
             nodeApp.copy(
                 status = NodeAppStatus.REMOVED,
                 updatedAt = LocalDateTime.now()
             )
         )
-        appRepository.upsert(removedApp)
         return removedApp.toAppServiceResponse()
     }
 }

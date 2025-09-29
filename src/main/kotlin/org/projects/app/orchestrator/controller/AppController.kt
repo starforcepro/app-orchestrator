@@ -4,6 +4,7 @@ import org.projects.app.orchestrator.model.AppControllerResponse
 import org.projects.app.orchestrator.model.AppServiceResponseStatus
 import org.projects.app.orchestrator.model.toAppControllerResponse
 import org.projects.app.orchestrator.service.NodeAppService
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -31,7 +32,9 @@ class AppController(
         val response = nodeAppService.deploy(request.name, request.archive)
         val result = response.status
         return when (result) {
-            AppServiceResponseStatus.INVALID_ARCHIVE -> ResponseEntity.badRequest().build()
+            AppServiceResponseStatus.UNKNOWN_ERROR -> ResponseEntity.badRequest().build()
+            AppServiceResponseStatus.NOT_FOUND -> ResponseEntity.badRequest().build()
+            AppServiceResponseStatus.ALREADY_EXISTS -> ResponseEntity.status(HttpStatus.CONFLICT).build()
             AppServiceResponseStatus.SUCCESS -> ResponseEntity.ok()
                 .body(response.applicationInfo?.toAppControllerResponse())
 
@@ -39,9 +42,9 @@ class AppController(
         }
     }
 
-    @PostMapping("/{name}/start")
-    fun start(@PathVariable name: String): ResponseEntity<AppControllerResponse> {
-        val response = nodeAppService.start(name)
+    @PostMapping("/{name}/activate")
+    fun activate(@PathVariable name: String): ResponseEntity<AppControllerResponse> {
+        val response = nodeAppService.activate(name)
         val result = response.status
         return when (result) {
             AppServiceResponseStatus.NOT_FOUND -> ResponseEntity.notFound().build()
@@ -52,9 +55,9 @@ class AppController(
         }
     }
 
-    @PostMapping("/{name}/stop")
-    fun stop(@PathVariable name: String): ResponseEntity<AppControllerResponse> {
-        val response = nodeAppService.stop(name)
+    @PostMapping("/{name}/deactivate")
+    fun deactivate(@PathVariable name: String): ResponseEntity<AppControllerResponse> {
+        val response = nodeAppService.deactivate(name)
         val result = response.status
         return when (result) {
             AppServiceResponseStatus.NOT_FOUND -> ResponseEntity.notFound().build()

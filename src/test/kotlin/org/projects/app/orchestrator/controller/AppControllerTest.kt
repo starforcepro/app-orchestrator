@@ -41,6 +41,6 @@ class AppControllerTest : TestBase() {
         val request = DeployRequest(name, Base64.encode(archivedApp))
         val response =
             restTemplate.postForEntity(baseUrl() + "/apps/deploy", request, AppControllerResponse::class.java)
-        return response!!
+        return response
     }
 }
