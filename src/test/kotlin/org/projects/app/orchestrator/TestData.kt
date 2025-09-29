@@ -74,4 +74,8 @@ fun ByteArray.toZipByteArray(): ByteArray {
     return byteArrayOutputStream.toByteArray()
 }
 
+fun getLambdaCode() : String {
+    return Base64.encode(expressJsFileContent.toByteArray().toZipByteArray())
+}
+
 fun uniqueName(): String = UUID.randomUUID().toString()

@@ -42,7 +42,7 @@ class NodeAppService(
             lambdaFunctionHandler.create(lambda)
         } catch (_: ResourceConflictException) {
             logger.debug { "Lambda $name already exists" }
-            return AppServiceResponse(AppServiceResponseStatus.ALREADY_EXISTS)
+            return AppServiceResponse(AppServiceResponseStatus.CONCURRENT_UPDATE)
         } catch (e: Exception) {
             logger.error(e) { "Failed to deploy lambda $name" }
             return AppServiceResponse(AppServiceResponseStatus.UNKNOWN_ERROR)

@@ -39,6 +39,7 @@ class ProxyControllerTest : TestBase() {
     fun `returns 404 when app is not running`() {
         val name = uniqueName()
         deploy(name)
+        nodeAppService.deactivate(name)
         createdAppsNames += name
         val hostBase = appUrl(name)
 

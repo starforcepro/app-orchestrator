@@ -34,11 +34,9 @@ class AppController(
         return when (result) {
             AppServiceResponseStatus.UNKNOWN_ERROR -> ResponseEntity.badRequest().build()
             AppServiceResponseStatus.NOT_FOUND -> ResponseEntity.badRequest().build()
-            AppServiceResponseStatus.ALREADY_EXISTS -> ResponseEntity.status(HttpStatus.CONFLICT).build()
+            AppServiceResponseStatus.CONCURRENT_UPDATE -> ResponseEntity.status(HttpStatus.CONFLICT).build()
             AppServiceResponseStatus.SUCCESS -> ResponseEntity.ok()
                 .body(response.applicationInfo?.toAppControllerResponse())
-
-            else -> ResponseEntity.internalServerError().build()
         }
     }
 
