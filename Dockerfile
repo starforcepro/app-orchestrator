@@ -3,7 +3,6 @@ FROM eclipse-temurin:24-jdk AS build
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/*
-VOLUME /var/run/docker.sock:/var/run/docker.sock
 
 COPY gradlew ./
 COPY gradle ./gradle

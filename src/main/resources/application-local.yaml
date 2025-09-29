@@ -1,11 +1,9 @@
 spring:
   application:
-    name: exchange
+    name: app-orchestrator
   datasource:
-    url: jdbc:tc:postgresql:17://localhost/exchange
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    username: test
-    password: test
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:file:memdb1?mode=memory&cache=shared
   sql:
     init:
       mode: always

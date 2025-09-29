@@ -1,6 +1,9 @@
 spring:
   application:
-    name: exchange
+    name: app-orchestrator
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:file:memdb1?mode=memory&cache=shared
   sql:
     init:
       mode: always

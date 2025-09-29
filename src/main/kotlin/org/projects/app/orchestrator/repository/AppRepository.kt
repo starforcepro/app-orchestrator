@@ -5,6 +5,7 @@ import org.projects.app.orchestrator.model.NodeAppStatus
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
 import java.sql.ResultSet
+import java.sql.Timestamp
 import java.util.*
 
 @Repository
@@ -43,12 +44,11 @@ class AppRepository(
         """.trimIndent()
         jdbcTemplate.update(
             sql,
-
-                appInfo.id,
+                appInfo.id.toString(),
                 appInfo.name,
                 appInfo.status.name,
-                appInfo.createdAt,
-                appInfo.updatedAt,
+                Timestamp.valueOf(appInfo.createdAt),
+                Timestamp.valueOf(appInfo.updatedAt),
         )
         return appInfo
     }
@@ -62,7 +62,7 @@ class AppRepository(
         jdbcTemplate.update(
             sql,
                 appInfo.status.name,
-            appInfo.updatedAt,
+            Timestamp.valueOf(appInfo.updatedAt),
             appInfo.name,
         )
         return appInfo
